@@ -1,0 +1,3 @@
+stash-commit-status-resource
+ci/release/*.tar
+_example
