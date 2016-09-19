@@ -1,5 +1,7 @@
 # Stash Commit Status Resource
 
+[![Build Status](https://travis-ci.org/zabawaba99/stash-commit-status-resource.svg?branch=master)](https://travis-ci.org/zabawaba99/stash-commit-status-resource)
+
 A concourse resource that will set a build status on your commits.
 
 ## Source Configuration

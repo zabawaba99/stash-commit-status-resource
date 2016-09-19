@@ -1,0 +1,69 @@
+language: go
+
+go:
+  - 1.7
+
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  # linting tools
+  - go get github.com/golang/lint/golint
+  - go get github.com/fzipp/gocyclo
+
+  # code coverage
+  - go get github.com/axw/gocov/gocov
+  - go get github.com/mattn/goveralls
+  - if ! go get code.google.com/p/go.tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
+
+install:
+  # make sure stuff actually builds
+  - go build ./cmd/...
+
+script:
+  - |
+    pkgs=()
+    while read -r line; do
+      pkgs+=("$line")
+    done <<< "$(go list ./... | grep -v 'vendor')"
+
+  # ensure everything is formatted all pretty like
+  - if gofmt -l -s . | grep -v 'vendor/'; then exit 1; fi
+  # vet out possible issues
+  - go vet ${pkgs[@]}
+  # run tests
+  - go get -t ./...
+  - "$HOME/gopath/bin/goveralls -service=travis-ci -repotoken=$COVERALLS -v"
+
+after_script:
+  # check possible styling errors
+  - for pkg in ${pkgs[@]}; do; golint $pkg; done
+  # check for potentially complex functions but don't false build
+  - gocyclo -over 15 . | grep -v 'vendor/' || true
+
+after_success:
+  - |
+    echo "mode: count" > profile.cov
+    for dir in $(find . -maxdepth 10 -not -path 'vendor' -not -path './.git*' -not -path '*/_*' -type d);
+    do
+    if ls $dir/*.go &> /dev/null; then
+      go test -short -covermode=count -coverprofile=$dir/profile.tmp $dir
+      if [ -f $dir/profile.tmp ]
+      then
+        cat $dir/profile.tmp | tail -n +2 >> profile.cov
+        rm $dir/profile.tmp
+      fi
+    fi
+    done
+    go tool cover -func profile.cov
+    goveralls -coverprofile=profile.cov -service=travis-ci -repotoken=$COVERALLS -v
+
+  # deploy the image
+  - |
+    if [ "$TRAVIS_BRANCH" == "master" ]; then
+      docker login -u $DOCKER_USER -p $DOCKER_PASS;
+      ./ci/build.sh;
+      docker push zabawaba99/stash-commit-status-resource;
+    fi
