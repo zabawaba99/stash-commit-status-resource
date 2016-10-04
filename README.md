@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/zabawaba99/stash-commit-status-resource.svg?branch=master)](https://travis-ci.org/zabawaba99/stash-commit-status-resource)
 
+### Under Development. API may/will change.
+
 A concourse resource that will set a build status on your commits.
 
 ## Source Configuration
@@ -100,7 +102,7 @@ to set the build status on a commit.
 
 #### Parameters
 
-* `status`: *Required* The name you gave to the stash-commit-status-resource
+* `name`: *Required* The name you gave to the stash-commit-status-resource
 
 * `state`: *Required.* The state of the build. Must be [INPROGRESS, SUCCESSFUL, FAILURE]
 
