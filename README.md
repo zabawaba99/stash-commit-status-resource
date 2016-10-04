@@ -16,12 +16,6 @@ A concourse resource that will set a build status on your commits.
 * `password`: *Required.* Password for HTTP(S) auth when setting and retrieving
   the build status on a commit.
 
-* `project`: *Required.* The project the repository that is being tracked lives in.
-
-* `repository`: *Required.* The repository to track commits on.
-
-* `branch`: *Optional.* Scopes the tracked commits to this branch. Defaults to master.
-
 ### Example
 
 ```yaml
@@ -38,18 +32,29 @@ resources:
     host: http://10.0.0.5:7990
     username: username
     password: password
-    project: foo
-    repository: bar
+- name: src
+  type: git
+  source:
+    uri: git@github.com:zabawaba99/stash-commit-status-resource.git
     branch: master
+    private_key: |
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIEowIBAAKCAQEAtCS10/f7W7lkQaSgD/mVeaSOvSF9ql4hf/zfMwfVGgHWjj+W
+      <Lots more text>
+      DWiJL+OFeg9kawcUL6hQ8JeXPhlImG6RTUffma9+iGQyyBMCGd1l
+      -----END RSA PRIVATE KEY-----
 
 jobs:
 - name: hello-world
   plan:
-  - get: status
+  - get: src
     trigger: true
+  - get: status
+    params:
+      repository: src
   - put: status
     params:
-      name: status
+      commit: status/commit
       state: INPROGRESS
       description: "starting build"
   - task: foo
@@ -68,13 +73,13 @@ jobs:
     on_success:
       put: status
       params:
-        name: status
+        commit: status/commit
         state: SUCCESSFUL
         description: "everything is ok"
     on_failure:
       put: status
       params:
-        name: status
+        commit: status/commit
         state: FAILED
         description: "something went wrong"
 ```
@@ -83,17 +88,15 @@ jobs:
 
 ### `check`: Check for new commits.
 
-A request is made to the [stash API](https://developer.atlassian.com/static/rest/stash/3.11.6/stash-rest.html#idp2461680),
-and any commits from the given version on are returned. If no version is given, the ref
-for `HEAD` is returned.
-
+Not implemented.
 
 ### `in`: Fetch the build status of the commit in question.
 
-Requests the [build status](https://developer.atlassian.com/static/rest/stash/3.11.6/stash-build-integration-rest.html#idp57632)
-of the commit that is being ran against.
+Writes out the current commit sha of the repository specified to `<resource-name>/commit`.
 
-Writes out the commit sha to `<resource-name>/commit` which is used by the put step.
+#### Parameters
+
+* `repository`: *Required* A git repository to get the last commit off.
 
 ### `out`: Set the build status of a commit.
 
@@ -102,8 +105,8 @@ to set the build status on a commit.
 
 #### Parameters
 
-* `name`: *Required* The name you gave to the stash-commit-status-resource
+* `commit`: *Required* A file containing the commit sha that the build status pertains to.
 
-* `state`: *Required.* The state of the build. Must be [INPROGRESS, SUCCESSFUL, FAILURE]
+* `state`: *Required.* The state of the build. Must be [INPROGRESS, SUCCESSFUL, FAILURE].
 
 * `description`: *Optional.* A message given context to the build status.
