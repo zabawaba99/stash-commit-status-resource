@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strconv"
+	"os/exec"
 
 	"github.com/zabawaba99/stash-commit-status-resource/resource"
-	"github.com/zabawaba99/stash-commit-status-resource/stash"
 )
 
 func main() {
@@ -28,23 +27,16 @@ type metadataItem struct {
 }
 
 func in(req resource.Request) error {
-	src := req.Source
-	client := stash.NewClient(src.Host, src.Username, src.Password)
-	status, err := client.BuildStatus(req.Version.Ref)
+	cmd := exec.Command("git", "rev-parse", "HEAD")
+	cmd.Dir = req.Params.Repository
+	sha, err := cmd.CombinedOutput()
 	if err != nil {
-		return err
+		resource.Error("Could not fetch commit sha %s", err)
 	}
+
+	req.Version = resource.Version{Ref: string(sha)}
 	result := resource.Response{
 		Version: req.Version,
-		Metadata: resource.Metadata{
-			{Name: "commit", Value: req.Version.Ref},
-			{Name: "date_added", Value: strconv.FormatInt(status.DateAdded, 10)},
-			{Name: "description", Value: status.Description},
-			{Name: "key", Value: status.Key},
-			{Name: "name", Value: status.Name},
-			{Name: "state", Value: status.State},
-			{Name: "url", Value: status.URL},
-		},
 	}
 
 	if err := ioutil.WriteFile(os.Args[1]+"/commit", []byte(req.Version.Ref), 0777); err != nil {

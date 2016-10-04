@@ -3,35 +3,12 @@ package resource
 import (
 	"fmt"
 	"os"
-
-	"encoding/json"
 )
 
 type Source struct {
-	Host       string `json:"host"`
-	Username   string `json:"username"`
-	Password   string `json:"password"`
-	Project    string `json:"project"`
-	Repository string `json:"repository"`
-	Branch     string `json:"branch"`
-}
-
-func (s *Source) UnmarshalJSON(data []byte) error {
-	type ss Source
-	var v ss
-	if err := json.Unmarshal(data, &v); err != nil {
-		return err
-	}
-	s.Host = v.Host
-	s.Username = v.Username
-	s.Password = v.Password
-	s.Project = v.Project
-	s.Repository = v.Repository
-	s.Branch = v.Branch
-	if s.Branch == "" {
-		s.Branch = "master"
-	}
-	return nil
+	Host     string `json:"host"`
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 type Version struct {
@@ -39,7 +16,8 @@ type Version struct {
 }
 
 type Params struct {
-	Name        string `json:"name"`
+	Repository  string `json:"repository"`
+	Commit      string `json:"commit"`
 	State       string `json:"state"`
 	Description string `json:"description"`
 }
@@ -60,10 +38,6 @@ type Request struct {
 	Source  Source  `json:"source"`
 	Version Version `json:"version"`
 	Params  Params  `json:"params"`
-}
-
-func Log(format string, values ...interface{}) {
-	fmt.Fprintf(os.Stdout, format, values...)
 }
 
 func Error(format string, values ...interface{}) {

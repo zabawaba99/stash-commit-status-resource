@@ -37,7 +37,7 @@ func out(req resource.Request) error {
 	src := req.Source
 	client := stash.NewClient(src.Host, src.Username, src.Password)
 
-	commit, err := ioutil.ReadFile(os.Args[1] + "/" + req.Params.Name + "/commit")
+	commit, err := ioutil.ReadFile(os.Args[1] + "/" + req.Params.Commit + "/commit")
 	if err != nil {
 		return err
 	}
