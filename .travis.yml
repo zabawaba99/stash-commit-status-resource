@@ -62,7 +62,7 @@ after_success:
 
   # deploy the image
   - |
-    if [ "$TRAVIS_BRANCH" == "master" ]; then
+    if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
       docker login -u $DOCKER_USER -p $DOCKER_PASS;
       ./ci/build.sh;
       docker push zabawaba99/stash-commit-status-resource;
