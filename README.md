@@ -49,12 +49,9 @@ jobs:
   plan:
   - get: src
     trigger: true
-  - get: status
-    params:
-      repository: src
   - put: status
     params:
-      commit: status/commit
+      repository: src
       state: INPROGRESS
       description: "starting build"
   - task: foo
@@ -73,13 +70,13 @@ jobs:
     on_success:
       put: status
       params:
-        commit: status/commit
+        repository: src
         state: SUCCESSFUL
         description: "everything is ok"
     on_failure:
       put: status
       params:
-        commit: status/commit
+        repository: src
         state: FAILED
         description: "something went wrong"
 ```
@@ -92,11 +89,7 @@ Not implemented.
 
 ### `in`: Fetch the build status of the commit in question.
 
-Writes out the current commit sha of the repository specified to `<resource-name>/commit`.
-
-#### Parameters
-
-* `repository`: *Required* A git repository to get the last commit off.
+Not implemented.
 
 ### `out`: Set the build status of a commit.
 
@@ -105,7 +98,7 @@ to set the build status on a commit.
 
 #### Parameters
 
-* `commit`: *Required* A file containing the commit sha that the build status pertains to.
+* `repository`: *Required* A git repository to get the last commit off.
 
 * `state`: *Required.* The state of the build. Must be [INPROGRESS, SUCCESSFUL, FAILURE].
 

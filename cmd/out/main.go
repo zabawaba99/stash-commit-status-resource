@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
+	"os/exec"
 	"strconv"
 
 	"github.com/zabawaba99/stash-commit-status-resource/resource"
@@ -28,6 +28,10 @@ func main() {
 		resource.Error("Invalid state. State must be one the following %v", validStates)
 	}
 
+	if req.Params.Repository == "" {
+		resource.Error("You need to specify the repository location")
+	}
+
 	if err := out(req); err != nil {
 		resource.Error("Could not update resource %s", err)
 	}
@@ -37,10 +41,13 @@ func out(req resource.Request) error {
 	src := req.Source
 	client := stash.NewClient(src.Host, src.Username, src.Password)
 
-	commit, err := ioutil.ReadFile(os.Args[1] + "/" + req.Params.Commit + "/commit")
+	cmd := exec.Command("git", "rev-parse", "HEAD")
+	cmd.Dir = req.Params.Repository
+	commit, err := cmd.CombinedOutput()
 	if err != nil {
 		return err
 	}
+
 	status := stash.Status{
 		State:       req.Params.State,
 		Key:         os.Getenv("BUILD_JOB_NAME"),
