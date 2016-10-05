@@ -1,4 +1,4 @@
-package stash
+package resource
 
 import (
 	"bytes"
@@ -10,15 +10,15 @@ import (
 	"strings"
 )
 
-type Client struct {
+type StashClient struct {
 	host     string
 	username string
 	password string
 }
 
-func NewClient(host, username, password string) *Client {
+func NewStashClient(host, username, password string) *StashClient {
 	host = strings.TrimSuffix(host, "/")
-	return &Client{
+	return &StashClient{
 		host:     host + "/rest",
 		username: username,
 		password: password,
@@ -34,13 +34,14 @@ type Status struct {
 	DateAdded   int64  `json:"dateAdded,omitempty"`
 }
 
-func (c *Client) SetBuildStatus(commit string, status Status) error {
+func (c *StashClient) SetBuildStatus(commit string, status Status) error {
 	body, err := json.Marshal(status)
 	if err != nil {
 		return err
 	}
 
 	path := fmt.Sprintf("%s/build-status/1.0/commits/%s", c.host, commit)
+	Log("Making request... %s\n", path)
 	req, err := http.NewRequest("POST", path, bytes.NewReader(body))
 	if err != nil {
 		return err
