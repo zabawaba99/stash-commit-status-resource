@@ -2,13 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
-	"os/exec"
-	"strconv"
 
 	"github.com/zabawaba99/stash-commit-status-resource/resource"
-	"github.com/zabawaba99/stash-commit-status-resource/stash"
 )
 
 func main() {
@@ -32,57 +28,7 @@ func main() {
 		resource.Error("You need to specify the repository location")
 	}
 
-	if err := out(req); err != nil {
+	if err := resource.Put(req); err != nil {
 		resource.Error("Could not update resource %s", err)
 	}
-}
-
-func out(req resource.Request) error {
-	src := req.Source
-	client := stash.NewClient(src.Host, src.Username, src.Password)
-
-	cmd := exec.Command("git", "rev-parse", "HEAD")
-	cmd.Dir = req.Params.Repository
-	commit, err := cmd.CombinedOutput()
-	if err != nil {
-		return err
-	}
-
-	status := stash.Status{
-		State:       req.Params.State,
-		Key:         os.Getenv("BUILD_JOB_NAME"),
-		Name:        fmt.Sprintf("%s-%s", os.Getenv("BUILD_JOB_NAME"), os.Getenv("BUILD_ID")),
-		Description: req.Params.Description,
-		URL:         os.Getenv("ATC_EXTERNAL_URL"),
-	}
-
-	if client.SetBuildStatus(string(commit), status); err != nil {
-		return err
-	}
-
-	version := resource.Version{Ref: string(commit)}
-	result := resource.Response{
-		Version: version,
-		Metadata: resource.Metadata{
-			{Name: "commit", Value: version.Ref},
-			{Name: "date_added", Value: strconv.FormatInt(status.DateAdded, 10)},
-			{Name: "description", Value: status.Description},
-			{Name: "key", Value: status.Key},
-			{Name: "name", Value: status.Name},
-			{Name: "state", Value: status.State},
-			{Name: "url", Value: status.URL},
-		},
-	}
-
-	return outputResult(result)
-}
-
-func outputResult(v interface{}) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("%s", b)
-	return nil
 }
