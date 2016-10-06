@@ -114,5 +114,5 @@ func getBuildURL() string {
 	pipeline := os.Getenv("BUILD_PIPELINE_NAME")
 	job := os.Getenv("BUILD_JOB_NAME")
 	build := os.Getenv("BUILD_NAME")
-	return fmt.Sprintf(`%s/%s/pipelines/%s/jobs/%s/builds/%s`, atc, team, pipeline, job, build)
+	return fmt.Sprintf(`%s/teams/%s/pipelines/%s/jobs/%s/builds/%s`, atc, team, pipeline, job, build)
 }
