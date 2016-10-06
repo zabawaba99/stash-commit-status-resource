@@ -82,7 +82,7 @@ func Put(req Request) error {
 		Key:         os.Getenv("BUILD_JOB_NAME"),
 		Name:        fmt.Sprintf("%s-%s", os.Getenv("BUILD_JOB_NAME"), os.Getenv("BUILD_ID")),
 		Description: req.Params.Description,
-		URL:         os.Getenv("ATC_EXTERNAL_URL"),
+		URL:         getBuildURL(),
 	}
 
 	Log("Build status %#v\n", status)
@@ -106,4 +106,13 @@ func Put(req Request) error {
 	}
 
 	return Output(result)
+}
+
+func getBuildURL() string {
+	atc := os.Getenv("ATC_EXTERNAL_URL")
+	team := "main" // hard-coded until https://github.com/concourse/concourse/issues/616 is resolved
+	pipeline := os.Getenv("BUILD_PIPELINE_NAME")
+	job := os.Getenv("BUILD_JOB_NAME")
+	build := os.Getenv("BUILD_NAME")
+	return fmt.Sprintf(`%s/%s/pipelines/%s/jobs/%s/builds/%s`, atc, team, pipeline, job, build)
 }
