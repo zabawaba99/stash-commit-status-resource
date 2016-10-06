@@ -122,6 +122,9 @@ func Put(req Request) error {
 func getBuildURL() string {
 	atc := os.Getenv("ATC_EXTERNAL_URL")
 	team := "main" // hard-coded until https://github.com/concourse/concourse/issues/616 is resolved
+	if t := os.Getenv("BUILD_TEAM_NAME"); t != "" {
+		team = t
+	}
 	pipeline := os.Getenv("BUILD_PIPELINE_NAME")
 	job := os.Getenv("BUILD_JOB_NAME")
 	build := os.Getenv("BUILD_NAME")
