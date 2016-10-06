@@ -16,6 +16,10 @@ A concourse resource that will set a build status on your commits.
 * `password`: *Required.* Password for HTTP(S) auth when setting and retrieving
   the build status on a commit.
 
+* `retry_attempts`: *Optional.* Number of times to attempt to set the build status.
+  Using basic auth without SSL may cause an issue with the stash API where a retry
+  needed.
+
 ### Example
 
 ```yaml

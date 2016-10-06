@@ -7,12 +7,14 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"time"
 )
 
 type Source struct {
-	Host     string `json:"host"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Host          string `json:"host"`
+	Username      string `json:"username"`
+	Password      string `json:"password"`
+	RetryAttempts int    `json:"retry_attempts"`
 }
 
 type Version struct {
@@ -86,8 +88,17 @@ func Put(req Request) error {
 	}
 
 	Log("Build status %#v\n", status)
-	if err := client.SetBuildStatus(string(commit), status); err != nil {
-		return err
+	err = client.SetBuildStatus(string(commit), status)
+	attempts := req.Source.RetryAttempts
+	for err != nil && attempts > 0 {
+		Log("Failed to set build status, retrying...\n")
+		err = client.SetBuildStatus(string(commit), status)
+		attempts--
+		time.Sleep(time.Second)
+	}
+
+	if err != nil {
+		Error("Failed to set the build status after %d attempts %s", req.Source.RetryAttempts, err)
 	}
 	Log("Status set successfully\n")
 
