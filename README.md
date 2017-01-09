@@ -20,6 +20,9 @@ A concourse resource that will set a build status on your commits.
   Using basic auth without SSL may cause an issue with the stash API where a retry
   needed.
 
+* `skip_ssl_verification`: *Optional.* Skip verifying the SSL certificate of the
+  Stash server. Defaults to `false`.
+
 ### Example
 
 ```yaml

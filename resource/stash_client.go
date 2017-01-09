@@ -2,6 +2,7 @@ package resource
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,14 +15,22 @@ type StashClient struct {
 	host     string
 	username string
 	password string
+	client   *http.Client
 }
 
-func NewStashClient(host, username, password string) *StashClient {
+func NewStashClient(host, username, password string, skipSSLVerification bool) *StashClient {
 	host = strings.TrimSuffix(host, "/")
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: skipSSLVerification},
+	}
+	client := &http.Client{Transport: tr}
+
 	return &StashClient{
 		host:     host + "/rest",
 		username: username,
 		password: password,
+		client:   client,
 	}
 }
 
@@ -50,7 +59,7 @@ func (c *StashClient) SetBuildStatus(commit string, status Status) error {
 	req.Header.Add("content-type", "application/json")
 	req.SetBasicAuth(c.username, c.password)
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return err
 	}
