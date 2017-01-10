@@ -11,10 +11,11 @@ import (
 )
 
 type Source struct {
-	Host          string `json:"host"`
-	Username      string `json:"username"`
-	Password      string `json:"password"`
-	RetryAttempts int    `json:"retry_attempts"`
+	Host                string `json:"host"`
+	Username            string `json:"username"`
+	Password            string `json:"password"`
+	RetryAttempts       int    `json:"retry_attempts"`
+	SkipSSLVerification bool   `json:"skip_ssl_verification"`
 }
 
 type Version struct {
@@ -67,7 +68,7 @@ func Output(v interface{}) error {
 
 func Put(req Request) error {
 	src := req.Source
-	client := NewStashClient(src.Host, src.Username, src.Password)
+	client := NewStashClient(src.Host, src.Username, src.Password, src.SkipSSLVerification)
 
 	cmd := exec.Command("git", "rev-parse", "--short=40", "HEAD")
 	cmd.Dir = fmt.Sprintf("%s/%s", os.Args[1], req.Params.Repository)
