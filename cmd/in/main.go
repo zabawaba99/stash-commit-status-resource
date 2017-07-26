@@ -2,25 +2,31 @@ package main
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"os"
-
-	"github.com/zabawaba99/stash-commit-status-resource/resource"
 )
 
 func main() {
-	var req resource.Request
-	if err := json.NewDecoder(os.Stdin).Decode(&req); err != nil {
-		resource.Error("Could not unmarshal request %s", err)
+	var out struct {
+		Version interface{} `json:"version"`
 	}
 
-	if req.Version.Ref == "" {
-		req.Version.Ref = "1"
+	inBytes, err := ioutil.ReadAll(os.Stdin)
+	if err != nil {
+		panic(err)
 	}
 
-	resp := resource.Response{
-		Version: req.Version,
+	if err := json.Unmarshal(inBytes, &out); err != nil {
+		panic(err)
 	}
-	if err := resource.Output(resp); err != nil {
-		resource.Error("failed to output body %#v with error %s", req, err)
+	if out.Version == nil {
+		os.Stderr.WriteString("missing version")
+		os.Exit(1)
 	}
+	outBytes, err := json.Marshal(out)
+	if err != nil {
+		panic(err)
+	}
+
+	os.Stdout.WriteString(string(outBytes))
 }
